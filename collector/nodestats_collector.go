@@ -32,6 +32,7 @@ type NodeStatsCollector struct {
 	ProcessMaxFileDescriptors     *prometheus.Desc
 	ProcessMemTotalVirtualInBytes *prometheus.Desc
 	ProcessCPUTotalInMillis       *prometheus.Desc
+	ProcessCPUPercent             *prometheus.Desc
 
 	PipelineDuration          *prometheus.Desc
 	PipelineQueuePushDuration *prometheus.Desc
@@ -196,6 +197,13 @@ func NewNodeStatsCollector(logstashEndpoint string) (Collector, error) {
 		ProcessCPUTotalInMillis: prometheus.NewDesc(
 			prometheus.BuildFQName(Namespace, subsystem, "process_cpu_total_seconds_total"),
 			"process_cpu_total_seconds_total",
+			nil,
+			nil,
+		),
+
+		ProcessCPUPercent: prometheus.NewDesc(
+			prometheus.BuildFQName(Namespace, subsystem, "process_cpu_percent"),
+			"process_cpu_percent",
 			nil,
 			nil,
 		),
@@ -590,6 +598,12 @@ func (c *NodeStatsCollector) collectProcess(stats NodeStatsResponse, ch chan<- p
 		c.ProcessCPUTotalInMillis,
 		prometheus.CounterValue,
 		float64(stats.Process.CPU.TotalInMillis)/1000,
+	)
+
+	ch <- prometheus.MustNewConstMetric(
+		c.ProcessCPUPercent,
+		prometheus.GaugeValue,
+		float64(stats.Process.CPU.Percent),
 	)
 }
 
